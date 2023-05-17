@@ -21,7 +21,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Ncit\\Efaas\\Socialite": "src/"
+            "Ncit\\Efaas\\Socialite\\": "src/"
         }
     },
     "extra": {
