@@ -27,7 +27,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Ncit\\Efaas\\Socialite\\Providers\\EfaasSocialiteServiceProvider"
+                "Ncit\\Efaas\\Socialite\\ServiceProvider"
             ]
         }
     },
