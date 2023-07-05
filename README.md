@@ -1,13 +1,13 @@
 # eFaas Laravel Socialite
 
-[Laravel Socialite](https://github.com/laravel/socialite) Provider for [eFaas](https://efaas.egov.mv/).
+[Laravel Socialite](https://github.com/laravel/socialite) Provider for [eFaas](https://efaas.gov.mv/).
 
 ## Installation
 
 You can install the package via composer:
 
 ``` bash
-composer require ncit/efaas-socialite
+composer require ncitmv/efaas-socialite
 ```
 
 **Laravel 5.5** and above uses Package Auto-Discovery, so doesn't require you to manually add the ServiceProvider.
@@ -25,8 +25,8 @@ Ncit\Efaas\Socialite\Providers\EfaasSocialiteServiceProvider::class,
 'efaas' => [    
     'client_id' => env('EFAAS_CLIENT_ID'),  
     'client_secret' => env('EFAAS_CLIENT_SECRET'),  
-    'redirect' => env('EFAAS_REDIRECT_URI'),
-    'server_url' => env('EFAAS_MODE', 'https://efaas.gov.mv/connect'),
+    'redirect' => env('EFAAS_CLIENT_REDIRECT_URI'),
+    'server_url' => env('EFAAS_URL', 'https://efaas.gov.mv/connect'),
 ],
 ```
 
@@ -38,14 +38,28 @@ Refer to the [Official Social Docs](https://laravel.com/docs/8.x/socialite#routi
 **Warning:** If you get `403 Forbidden` error when your Laravel app makes requests to the eFaas authorization endpoints, request NCIT to whitelist your server IP.
 
 ```php
+//efaas default scopes are openid and efaas.profile
 return Socialite::driver('efaas')->redirect();
+
+//to get extra scopes pass other scopes on scopes methods
+return Socialite::driver('efaas')->scopes([
+    'openid',
+    'efaas.profile',
+    'efaas.email',
+    'efaas.mobile',
+    'efaas.passport_number',
+    'efaas.country',
+    'efaas.work_permit_status',
+    'efaas.photo'
+])->redirect();
+
 ```
 
 and in your callback handler, you can access the user data like so.
 
 ```
-$efaas_user = Socialite::driver('efaas')->user();
-$access_token = $efaas_user->token;
+$efaasUser = Socialite::driver('efaas')->user();
+$accessToken = $efaasUser->token;
 ```
 
 #### Logging out the eFaas User
@@ -63,7 +77,7 @@ This package will automatically add an /efaas-one-tap-login endpoint to your web
 Sometimes you may wish to customize the routes defined by the Efaas Provider. To achieve this, you first need to ignore the routes registered by Efaas Provider by adding `EfaasProvider::ignoreRoutes` to the register method of your application's `AppServiceProvider`:
 
 ``` php
-use Javaabu\EfaasSocialite\EfaasProvider;
+use Ncit\Efaas\EfaasProvider;
 
 /**
  * Register any application services.
@@ -80,7 +94,7 @@ Then, you may copy the routes defined by Efaas Provider in [its routes file](/ro
 ```php
 Route::group([
     'as' => 'efaas.',
-    'namespace' => '\Javaabu\EfaasSocialite\Http\Controllers',
+    'namespace' => '\Ncit\Efaas\Http\Controllers',
 ], function () {
     // Efaas routes...
 });
@@ -116,43 +130,39 @@ The available prompt options are:
 **`consent`**            | Triggers the OAuth consent dialog after the user signs in, asking the user to grant permissions to the app.
 **`select_account`**     | Interrupts the single sign-on, providing account selection experience listing all the accounts either in session or any remembered account or an option to choose to use a different account altogether
 
-#### Available Methods for eFaas User
+#### Available properties for eFaas User
 
 ``` php
-$efaas_user->getDhivehiName(); // Full name in Dhivehi
+$id_number = $efaasUser->username;
 ```
 
-#### Getting eFaas data from eFaas User object
-
-``` php
-$id_number = $oauth_user->idnumber;
-```
-
-#### Available eFaas data fields
- Field                   | Description                                    | Example
------------------------- |----------------------------------------------- | ---------------------------------------
+#### All Available eFaas data fields
+ Field                   | Description                                   
+------------------------ |-----------------------------------------------
+**`id`**                 | Efaas User Identifier                          |
 **`name`**               | Full Name                                      | `Ahmed Mohamed`
-**`given_name`**         | First Name                                     | `Ahmed`
+**`first_name`**         | First Name                                     | 
 **`middle_name`**        | Middle Name                                    | 
-**`family_name`**        | Last Name                                      | `Mohamed`
-**`idnumber`**           | ID number in case of maldivian and workpermit number in case of expatriates | `A037420`                                     | `Ahmed`
-**`gender`**             | Gender                                         | `M` or `F`
-**`address`**            | Permananet Address. Country will contain an ISO 3 Digit country code. | ```["AddressLine1" => "Light Garden", "AddressLine2" => "", "Road" => "", "AtollAbbreviation" => "K", "IslandName" => "Male", "HomeNameDhivehi" => "ލައިޓްގާރޑްން", "Ward" => "Maafannu", "Country" => "462"]```                                     | `Ahmed`
-**`phone_number`**       | Registered phone number                        | `9939900`
-**`email`**              | Email address                                  | `ahmed@example.com`
-**`fname_dhivehi`**      | First name in Dhivehi                          | `އަހުމަދު`
-**`mname_dhivehi`**      | Middle name in Dhivehi                         |
-**`lname_dhivehi`**      | Last name in Dhivehi                           | `މުހައްމަދު`
+**`last_name`**          | Last Name                                      | `Mohamed`
+**`name_dhivehi`**       | Full Name In dhivehi                           | `Ahmed Mohamed`
+**`first_name_dhivehi`** | First name in Dhivehi                          | `އަހުމަދު`
+**`middle_name_dhivehi`**| Middle name in Dhivehi                         |
+**`last_name_dhivehi`**  | Last name in Dhivehi                           | `މުހައްމަދު`
 **`user_type`**          | User type<br>1- Maldivian<br>2- Work Permit Holder<br>3- Foreigners | 1
-**`user_type_desc`**     | Description of the user type                   | `Maldivian`
-**`verification_level`** | Verification level of the user in efaas<br>100: Not Verified<br>150: Verified by calling<br>200: Mobile Phone registered in the name of User<br>250: Verified in person (Limited)<br>300: Verified in person | `300`
-**`verification_level_desc`**     | Description of the verification level | `Verified in person`
-**`user_state`**          | User's state<br>2- Pending Verification<br>3- Active | `3`
-**`user_state_desc`**     | Description of user's state                   | `Active`
+**`username`**           | ID number in case of maldivian and workpermit number in case of expatriates | `A037420`
 **`birthdate`**           | Date of birth. (Carbon instance)              | `10/28/1987`
+**`gender`**             | Gender                                         | `M` or `F`
+**`email`**              | Email address                                  | `ahmed@example.com`
+**`mobile`**             | Registered phone number                        | `9939900`
+**`photo`**              | User photo                                     | `https://api.efaas.gov.mv/user/photo`
+**`passport_number`**    | Passport number of the individual (expat and foreigners only) | 
 **`is_workpermit_active`** | Is the work permit active                    | `false`
-**`passport_number`**     | Passport number of the individual (expat and foreigners only) | 
-**`updated_at`**          | Information Last Updated date. (Carbon instance) | `10/28/2017`  
+**`permanentAddress`**  | Permananet Address. Country will contain an ISO 3 Digit country code. | ```["AddressLine1" => "Light Garden", "AddressLine2" => "", "Road" => "", "AtollAbbreviation" => "K", "IslandName" => "Male", "HomeNameDhivehi" => "ލައިޓްގާރޑްން", "Ward" => "Maafannu", "Country" => "462"]```                                     | `Ahmed`
+**`country`**             | user Country name                   | `Maldivian`
+**`countryCode`**         | user Country Code                   | `MDV`
+**`is_verified`**         | Whether User is verified or Not | `true` or `false` 
+**`verification_type`**   | user verification type  | `manual` or `face` 
+**`updated_at`**          | Information Last Updated date. (Carbon instance) | `10/28/2017`
 
 ### Testing
 
@@ -170,7 +180,7 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ### Security
 
-If you discover any security related issues, please email info@javaabu.com instead of using the issue tracker.
+If you discover any security related issues, please email is@ncit.gov.mv instead of using the issue tracker.
 
 ## Credits
 
