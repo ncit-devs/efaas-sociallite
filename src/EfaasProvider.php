@@ -192,6 +192,10 @@ class EfaasProvider extends AbstractProvider implements ProviderInterface
 
         $socialteUser->username = Arr::get($user, 'idnumber');
 
+        if (array_key_exists('full_name', $user)) {
+            $socialteUser->name = Arr::get($user, 'full_name');
+        }
+
         if (array_key_exists('email', $user)) {
             $socialteUser->email = Arr::get($user, 'email');
         }
