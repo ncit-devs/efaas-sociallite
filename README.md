@@ -7,7 +7,7 @@
 You can install the package via composer:
 
 ``` bash
-composer require ncitmv/efaas-socialite
+composer require ncit/efaas-socialite
 ```
 
 **Laravel 5.5** and above uses Package Auto-Discovery, so doesn't require you to manually add the ServiceProvider.
